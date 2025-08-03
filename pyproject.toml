@@ -1,0 +1,222 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "recode-video"
+dynamic = ["version"]
+description = ''
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "linuxdaemon", email = "linuxdaemon.irc@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+  "click",
+]
+
+[project.urls]
+Documentation = "https://github.com/linuxdaemon/recode-video#readme"
+Issues = "https://github.com/linuxdaemon/recode-video/issues"
+Source = "https://github.com/linuxdaemon/recode-video"
+
+[project.scripts]
+recode-video = "recode_video.cli:recode_video"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/.github"]
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/recode_video/_version.py"
+
+[tool.hatch.envs.default]
+dependencies = ["pre-commit", "ruamel.yaml"]
+
+[tool.hatch.envs.default.scripts]
+setup-dev = ["hatch run pre-commit install"]
+fix-pre-commit = ["hatch run python3 -m scripts.fix_pre_commit"]
+
+[tool.hatch.envs.hatch-test]
+default-args = ["tests", "src"]
+extra-args = ["-vv"]
+[tool.hatch.envs.hatch-test.scripts]
+run = "pytest{env:HATCH_TEST_ARGS:} {args}"
+run-cov = "coverage run -m pytest{env:HATCH_TEST_ARGS:} {args}"
+cov-combine = "coverage combine"
+cov-report = ["coverage report --show-missing --skip-covered", "coverage xml"]
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/recode_video tests}"
+
+[tool.coverage.run]
+source_pkgs = ["recode_video", "tests"]
+branch = true
+parallel = true
+relative_files = true
+omit = [
+  "src/recode_video/_version.py",
+]
+
+[tool.coverage.paths]
+recode_video = ["src/recode_video", "*/recode-video/src/recode_video"]
+tests = ["tests", "*/recode-video/tests"]
+
+[tool.coverage.report]
+exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
+
+[tool.nitpick]
+style = ["gh://TotallyNotRobots/nitpick/app-style-3.10.toml"]
+
+[tool.isort]
+line_length = 80
+profile = "black"
+float_to_top = true
+
+[tool.black]
+line-length = 80
+target-version = ["py310"]
+
+[tool.mypy]
+python_version = "3.10"
+namespace_packages = true
+warn_unused_configs = true
+strict_optional = true
+ignore_missing_imports = true
+check_untyped_defs = true
+show_error_codes = true
+warn_unused_ignores = true
+no_implicit_reexport = true
+warn_redundant_casts = true
+extra_checks = true
+strict = true
+strict_equality = true
+disallow_any_generics = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_untyped_decorators = true
+warn_unreachable = true
+warn_return_any = true
+warn_no_return = true
+enable_error_code = [
+    "redundant-self",
+    "redundant-expr",
+    "possibly-undefined",
+    "truthy-bool",
+    "truthy-iterable",
+    "ignore-without-code",
+]
+
+[tool.flynt]
+transform-concats = true
+transform-joins = true
+line-length = 120
+aggressive = true
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "v$version"
+version_scheme = "semver"
+version_provider = "scm"
+update_changelog_on_bump = true
+major_version_zero = true
+
+[tool.check-spdx-header]
+headers = ["2025-present linuxdaemon <linuxdaemon.irc@gmail.com>"]
+
+[tool.ruff]
+line-length = 80
+target-version = 'py310'
+
+[tool.ruff.format]
+docstring-code-format = true
+line-ending = "lf"
+skip-magic-trailing-comma = true
+
+[tool.ruff.lint]
+extend-safe-fixes = [
+  "EM101",
+  "EM102",
+  "EM103",
+  "FLY002",
+  "TCH001",
+  "TCH002",
+  "TRY400",
+  "SIM102",
+  "SIM117",
+  "SIM108",
+  "ANN201",
+  "D415",
+  "D200",
+  "RUF005",
+  "S311",
+  "PT006",
+]
+ignore = [
+  "TRY003", # TODO(aspen): Switch to custom exceptions
+  "ANN101", # Due to be deprecated in ruff
+  "ANN102", # Due to be deprecated in ruff
+  "COM812", # Conflicts with formatter
+  "ISC001", # Conflicts with formatter
+  "EXE002", # pre-commit does it better, works with SMB shares
+  "FA100",
+  "D100",    # TODO(aspen): Document modules
+  "D101",    # TODO(aspen): Document classes
+  "D102",    # TODO(aspen): Document public methods
+  "D103",    # TODO(aspen): Document public functions
+  "D104",    # TODO(aspen): Document package
+  "D105",    # TODO(aspen): Document __*__ methods
+  "D107",    # TODO(aspen): Document __init__ methods
+  "S607",    # Partial executable paths are an accepted risk to allow cross-platform use -aspen
+  "PLR0913", # TODO(aspen): Set specific ignores for cli handlers
+  "FIX002",  # Ignore todo comments
+]
+select = ["ALL"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = [
+  "PLR2004", # Allow "magic values" in tests -aspen
+  "S101",    # Allow asserts in tests
+  "S301",    # Allow pickle in tests
+  "SIM201",  # We need to test weird comparison operators
+  "SIM202",  # We need to test weird comparison operstors
+  "SIM300",  # We need to test both forward and reverse comparisons
+  "FBT001",  # Boolean parameters are fine for test cases
+]
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 100
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--doctest-modules"
+testpaths = ["polymatch", "tests"]
+filterwarnings = ["error"]
+
+[tool.autoflake]
+remove-all-unused-imports = true
+in-place = true
