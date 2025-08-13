@@ -105,14 +105,14 @@ def handle_file(file: Path) -> None:
     for stream_index, stream in enumerate(streams):
         if stream["codec_type"] == "video":
             codec_name = stream["codec_name"]
-            if codec_name in {"vc1"}:
+            if codec_name in {"vc1", "hevc", "vp9", "av1"}:
                 needs_run = True
                 output_streams.append(
                     OutputStream(
                         stream_index,
                         options=[
                             "-c:{output_index}",
-                            "libx265",
+                            "libx264",
                             "-crf:{output_index}",
                             "20",
                             "-preset:{output_index}",
@@ -122,7 +122,7 @@ def handle_file(file: Path) -> None:
                         ],
                     )
                 )
-            elif codec_name in {"hevc", "h264", "mjpeg", "png", "vp9", "av1"}:
+            elif codec_name in {"h264", "mjpeg", "png"}:
                 output_streams.append(
                     OutputStream(
                         stream_index,
@@ -295,7 +295,7 @@ def handle_file(file: Path) -> None:
             [
                 "ffmpeg",
                 "-threads",
-                "32",
+                "16",
                 "-y",
                 *ffmpeg_args,
                 "-f",
