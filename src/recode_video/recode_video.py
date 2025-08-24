@@ -306,5 +306,5 @@ def handle_file(file: Path) -> None:
         )
 
         shutil.move(temp_path, out_path)
-        if in_path != out_path:
+        if in_path != out_path and out_path.exists():
             in_path.unlink()
