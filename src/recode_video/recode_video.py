@@ -36,7 +36,7 @@ def walk_paths(
     for path in paths:
         if path.is_dir():
             walk_paths(
-                [p for p in path.rglob("*") if predicate(p)],
+                [p for p in path.iterdir() if predicate(p)],
                 predicate,
                 callback,
             )
