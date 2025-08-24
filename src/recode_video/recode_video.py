@@ -2,9 +2,8 @@ import json
 import shutil
 import subprocess
 import tempfile
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
-from itertools import chain
 from pathlib import Path
 from typing import Any
 
@@ -29,14 +28,14 @@ def get_video_info(video_path: Path) -> Any:
 
 
 def walk_paths(
-    paths: list[Path],
+    paths: Iterable[Path],
     predicate: Callable[[Path], bool],
     callback: Callable[[Path], None],
 ) -> None:
     for path in paths:
         if path.is_dir():
             walk_paths(
-                [p for p in path.iterdir() if predicate(p)],
+                path.iterdir(),
                 predicate,
                 callback,
             )
