@@ -40,7 +40,10 @@ def walk_paths(
                 callback,
             )
         elif predicate(path):
-            callback(path)
+            try:
+                callback(path)
+            except Exception as e:
+                raise Exception(f"failed to re-encode {path}") from e
 
 
 def match_file(file: Path) -> bool:
@@ -69,6 +72,10 @@ def match_file(file: Path) -> bool:
 class OutputStream:
     input_index: int
     options: list[str] = field(default_factory=list)
+
+
+hdr_color_transfers = ["bt2020"]
+sdr_color_transfers = ["bt709"]
 
 
 def handle_file(file: Path) -> None:
@@ -103,22 +110,48 @@ def handle_file(file: Path) -> None:
 
     for stream_index, stream in enumerate(streams):
         if stream["codec_type"] == "video":
+            color_transfer = stream.get("color_transfer")
+            is_hdr = False
+            if color_transfer in hdr_color_transfers:
+                is_hdr = True
+            elif color_transfer in sdr_color_transfers:
+                is_hdr = False
+            else:
+                raise Exception(
+                    f"Unknown color transfer function: {color_transfer}"
+                )
+
             codec_name = stream["codec_name"]
-            if codec_name in {"vc1", "hevc", "vp9", "av1"}:
+            is_10_bit = stream["bits_per_raw_sample"] == "10"
+            if codec_name in {"vc1", "hevc", "vp9", "av1"} or is_10_bit:
                 needs_run = True
+                stream_args = [
+                    "-c:{output_index}",
+                    "libx264",
+                    "-crf:{output_index}",
+                    "20",
+                    "-preset:{output_index}",
+                    "medium",
+                    "-disposition:{output_index}",
+                    "+default",
+                ]
+
+                if is_10_bit:
+                    stream_args.extend(
+                        [
+                            "-pix_fmt",
+                            "yuv420p",
+                        ]
+                    )
+
+                    if is_hdr:
+                        raise Exception("file is hdr")
+                        # TODO: handle HDR tonemapping
+
                 output_streams.append(
                     OutputStream(
                         stream_index,
-                        options=[
-                            "-c:{output_index}",
-                            "libx264",
-                            "-crf:{output_index}",
-                            "20",
-                            "-preset:{output_index}",
-                            "medium",
-                            "-disposition:{output_index}",
-                            "+default",
-                        ],
+                        options=stream_args,
                     )
                 )
             elif codec_name in {"h264", "mjpeg", "png"}:
