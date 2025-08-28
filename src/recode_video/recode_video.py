@@ -114,7 +114,9 @@ def handle_file(file: Path) -> None:
             is_hdr = False
             if color_transfer in hdr_color_transfers:
                 is_hdr = True
-            elif color_transfer in sdr_color_transfers:
+            elif (
+                color_transfer in sdr_color_transfers or color_transfer is None
+            ):
                 is_hdr = False
             else:
                 raise Exception(
