@@ -124,7 +124,7 @@ def handle_file(file: Path) -> None:
                 )
 
             codec_name = stream["codec_name"]
-            is_10_bit = stream["bits_per_raw_sample"] == "10"
+            is_10_bit = stream.get("bits_per_raw_sample", "8") == "10"
             if codec_name in {"vc1", "hevc", "vp9", "av1"} or is_10_bit:
                 needs_run = True
                 stream_args = [
